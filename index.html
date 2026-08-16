@@ -56,7 +56,9 @@
   /* Fills the window, both directions. One column; the panels adapt to their
      OWN width via the container queries below. */
   .wrap {
-    width: 100%; max-width: 820px; margin: 0 auto; padding: 6px 10px 8px;
+    width: 100%; max-width: 820px; margin: 0 auto;
+    padding: calc(6px + env(safe-area-inset-top, 0px)) calc(10px + env(safe-area-inset-right, 0px))
+             calc(8px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px));
     min-height: 100dvh; display: flex; flex-direction: column; gap: 5px;
   }
   .wrap > .grow { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; }
@@ -472,12 +474,18 @@
   #detail {
     position: fixed; inset: 0; z-index: 40; background: var(--ink);
     overflow-y: auto; -webkit-overflow-scrolling: touch; display: none;
-    padding: 6px 8px 24px;
+    padding: calc(6px + env(safe-area-inset-top, 0px)) calc(8px + env(safe-area-inset-right, 0px))
+             calc(24px + env(safe-area-inset-bottom, 0px)) calc(8px + env(safe-area-inset-left, 0px));
   }
   #detail > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
   body.detail-open #detail { display: block; }
   body.detail-open .wrap { display: none; }
   #detail header { position: sticky; top: 0; background: var(--ink); padding: 2px 0 6px; z-index: 2; }
+  /* a little extra breathing room under the status bar: iOS treats the top few
+     pixels as the notification pull-down zone, so taps there get swallowed */
+  @supports (padding: env(safe-area-inset-top)) {
+    @media (display-mode: standalone) { .wrap { padding-top: calc(14px + env(safe-area-inset-top, 0px)); } }
+  }
   #detail .dsum { font-family: var(--mono); font-size: var(--fs-sm); color: var(--dim); }
   #detail .dsum b { color: var(--bone); }
 
@@ -1173,9 +1181,12 @@
   // creatures you control that entered this turn." Proliferate only adds to
   // permanents that ALREADY have a counter, so a plain 1/1 token is untouched.
   function proliferate() {
+    if (!s.tromell.on) return;        // no Tromell on the battlefield, no ability
     act(function () {
       var x = s.ts.ntIn, i;
-      if (x <= 0) return;
+      // X is nontoken creatures that entered THIS TURN; zero is a legal answer
+      // and it used to fail silently, which looked like a bug
+      if (x <= 0) { notes.push({ key: "tr", text: "X = 0" }); return; }
       for (i = 0; i < s.elfToks.length; i++) if (s.elfToks[i].c > 0) s.elfToks[i].c += x;
       if (s.marwyn.on && s.marwyn.ctr > 0) s.marwyn.ctr += x;
       if (s.gala.on && s.gala.ctr > 0) s.gala.ctr += x;
