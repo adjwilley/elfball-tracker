@@ -741,10 +741,21 @@
   // She is an Elf, so every anthem pumps her too.
   function arwenToughness() { return s.arwen.on ? 1 + s.arwen.ctr + s.anthems : 0; }
   function tokenPT(t) { return 1 + t.c + s.anthems; }
-  // Counters a creature entering now would pick up. Tromell is deliberately
+  // Counters a TOKEN entering now would pick up. Tromell is deliberately
   // absent: it reads "each other NONTOKEN creature", so it never sees a token.
   function entryCounters(isWarrior) {
     return arwenToughness() + (s.bramble.on && isWarrior ? 1 : 0);
+  }
+  // Counters a NONTOKEN creature entering now would pick up - the token list
+  // plus Tromell, whose static only ever sees nontokens. Every one of these
+  // reads "each OTHER creature", so a granter never counts itself: pass the
+  // entering permanent's own key and it drops out of its own sum.
+  function entryCountersNT(selfKey, isWarrior) {
+    var c = 0;
+    if (selfKey !== "arwen") c += arwenToughness();
+    if (selfKey !== "tromell" && s.tromell.on) c += 1;
+    if (selfKey !== "bramble" && s.bramble.on && isWarrior) c += 1;
+    return c;
   }
 
   function el(tag, cls) { var d = document.createElement(tag); if (cls) d.className = cls; return d; }
@@ -1173,6 +1184,18 @@
       var o = s[p.key];
       o.on = o.on ? 0 : 1;
       if (!o.on && p.ctr) o.ctr = 0;
+      // Switching a permanent on IS its ETB, so the counter granters already
+      // on the battlefield see it. None of Marwyn / Gala / Arwen is a Warrior,
+      // so Bramblewood never applies here.
+      if (o.on && p.ctr) {
+        var ec = entryCountersNT(p.key, false);
+        if (ec > 0) {
+          o.ctr = ec;
+          if (s.arwen.on && p.key !== "arwen") s.contrib.ar += arwenToughness();
+          sfxAt("counterUp", 1, 0.55);
+          notes.push({ key: floatKeyFor(p.key), text: "enters +" + ec });
+        }
+      }
       if (p.key === "warmaster" && o.on) o.fired = 0;
       if (p.key === "gala" && o.on) { o.mTre = 0; o.mLife = 0; o.mCtr = 0; }
     }, { reset: floatKeyFor(p.key) });
