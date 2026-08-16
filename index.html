@@ -296,7 +296,7 @@
   /* flex-wrap with a small basis: one row on a tablet, two or three on a
      phone, without a media query fighting the card widths. */
   .perms { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-  @media (min-width: 420px) { .perms { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 360px) { .perms { grid-template-columns: repeat(3, 1fr); } }
   @media (min-width: 700px) { .perms { grid-template-columns: repeat(5, 1fr); } }
   /* A wide, short chip can only ever show a thin band of a tall illustration,
      so extra height is the only real way to zoom the crop out. */
