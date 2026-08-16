@@ -62,9 +62,7 @@
   .wrap > .grow { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; }
   .wrap > .grow > * { flex: 0 0 auto; }
   .panel { margin-bottom: 0; }
-  .a-cre { container: cre / inline-size; }
-  .a-tok { container: tok / inline-size; }
-  .a-perm { container: perm / inline-size; }
+
 
 
 
@@ -159,7 +157,7 @@
     width: 100%; padding: 2px 6px; border-radius: 8px;
     background: var(--well); border: 1px solid var(--edge-soft);
   }
-  @container cre (max-width: 440px) {
+  @media (max-width: 520px) {
     .cmid { flex-basis: 78px; width: 78px; }
     .rtot { flex-basis: 92px; }
     .rbox { padding: 2px 4px; }
@@ -204,7 +202,7 @@
      a single comfortable column and spends the extra width on side margins. */
   /* The tokens panel decides for itself: two-up only when ITS OWN box is wide
      enough, which is true in the single-column layout and false in a column. */
-  @container tok (min-width: 620px) {
+  @media (min-width: 900px) and (orientation: landscape) {
     #tokens { grid-template-columns: 1fr 1fr; column-gap: clamp(28px, 5vw, 72px); }
     .trow + .trow { margin-top: 0; border-top: none; padding-top: 0; border-left: 1px solid var(--edge-soft); padding-left: 16px; }
   }
@@ -298,9 +296,8 @@
   /* flex-wrap with a small basis: one row on a tablet, two or three on a
      phone, without a media query fighting the card widths. */
   .perms { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-  .perm { max-width: 230px; }
-  @container perm (min-width: 330px) { .perms { grid-template-columns: repeat(3, 1fr); } }
-  @container perm (min-width: 560px) { .perms { grid-template-columns: repeat(5, 1fr); } }
+  @media (min-width: 420px) { .perms { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 700px) { .perms { grid-template-columns: repeat(5, 1fr); } }
   /* A wide, short chip can only ever show a thin band of a tall illustration,
      so extra height is the only real way to zoom the crop out. */
   .perm {
@@ -1487,11 +1484,9 @@
 </script>
 
 <script>
-/* Installed-app support. Only registers over https, so opening this file
-   straight off disk still behaves exactly as before. */
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js")["catch"](function () { /* offline support is optional */ });
+    navigator.serviceWorker.register("sw.js")["catch"](function () {});
   });
 }
 </script>
