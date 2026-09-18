@@ -560,6 +560,9 @@
   .chip .nm { font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: .04em; color: var(--bone); width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chip .v { font-family: var(--mono); font-size: var(--fs-lg); color: var(--amber); }
   .chip.off .v { color: var(--dim); }
+  .chip.life.on .v { color: #8EC7FF; }
+  .chip.life.on { border-color: #4E7FA8; }
+  .chip .pm .cc { cursor: pointer; padding: 3px 6px; border-radius: 5px; background: rgba(12,20,16,.55); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .chip .nt { font-size: var(--fs-sm); color: #D2DACE; text-align: center; line-height: 1.1; }
   .chip.off .nt { color: var(--dim); }
   .chip .pm { display: flex; gap: 3px; align-items: center; }
@@ -672,15 +675,15 @@
   var GROUPS = [
     { title: "Counter sources", keys: ["tromell", "arwen", "renata", "warden", "mike", "kami"] },
     { title: "Artifacts", keys: ["scales", "spire", "crystal"] },
-    { title: "Growing / mana", keys: ["marwyn", "weave", "joraga", "gyre", "champion", "kalonian", "seymour", "ouro"] },
+    { title: "Growing / mana", keys: ["marwyn", "weave", "joraga", "gyre", "kalonian", "seymour", "ouro"] },
     { title: "Other", keys: ["gala", "essence"] }
   ];
   var C = {
-    tromell:  { name: "Tromell",          art: "Tromell, Seymour's Butler", ctr: 1, p: 2, t: 3, elf: 1 },
+    tromell:  { name: "Tromell",          art: "Tromell, Seymour's Butler", p: 2, t: 3, elf: 1 },
     arwen:    { name: "Arwen",            art: "Arwen, Weaver of Hope", ctr: 1, p: 2, t: 1, elf: 1 },
-    renata:   { name: "Renata",           art: "Renata, Called to the Hunt", ctr: 1, p: 0, t: 3 },
+    renata:   { name: "Renata",           art: "Renata, Called to the Hunt", p: 0, t: 3 },
     warden:   { name: "Warden of Grove",  art: "Warden of the Grove", ctr: 1, p: 2, t: 2 },
-    mike:     { name: "Michelangelo",     art: "Michelangelo, Weirdness to 11", ctr: 1, p: 1, t: 1 },
+    mike:     { name: "Michelangelo",     art: "Michelangelo, Weirdness to 11", p: 1, t: 1 },
     kami:     { name: "Kami Whisp. Hopes", art: "Kami of Whispered Hopes", ctr: 1, p: 1, t: 1 },
     scales:   { name: "Hardened Scales",  art: "Hardened Scales" },
     spire:    { name: "Ozolith Spire",    art: "Ozolith, the Shattered Spire" },
@@ -689,12 +692,11 @@
     weave:    { name: "Weavemaster",      art: "Woodland Weavemaster", ctr: 1, p: 1, t: 2, elf: 1 },
     joraga:   { name: "Joraga Warcaller", art: "Joraga Warcaller", ctr: 1, p: 1, t: 1, elf: 1 },
     gyre:     { name: "Gyre Sage",        art: "Gyre Sage", ctr: 1, p: 1, t: 2, elf: 1 },
-    champion: { name: "Champ. Lambholt",  art: "Champion of Lambholt", ctr: 1, p: 1, t: 1 },
     kalonian: { name: "Kalonian Hydra",   art: "Kalonian Hydra", ctr: 1, p: 0, t: 0, own: 4 },
     seymour:  { name: "Maester Seymour",  art: "Maester Seymour", ctr: 1, p: 1, t: 3, elf: 1 },
     ouro:     { name: "Ouroboroid",       art: "Ouroboroid", ctr: 1, p: 1, t: 3 },
-    gala:     { name: "Gala Greeters",    art: "Gala Greeters", ctr: 1, p: 1, t: 1, elf: 1 },
-    essence:  { name: "Essence Warden",   art: "Essence Warden", ctr: 1, p: 1, t: 1, elf: 1 }
+    gala:     { name: "Gala Greeters",    art: "Gala Greeters", life: 1 },
+    essence:  { name: "Essence Warden",   art: "Essence Warden", life: 1 }
   };
   var KEYS = []; GROUPS.forEach(function (g) { g.keys.forEach(function (k) { KEYS.push(k); }); });
 
@@ -762,7 +764,6 @@
     act(function () {
       if (isElf) { s.elves++; s.ts.eIn++; } else s.others++;
       s.ts.cIn++; s.ts.ntIn++;
-      if (on("champion")) s.ctr.champion += place(1);
       if (on("marwyn") && isElf) s.ctr.marwyn += place(1);
       // Gyre Sage evolves if the newcomer is bigger; a 1/1 with its entry counters is the floor
       if (on("gyre") && 1 + place(enterBase(null)) + endure(null) > P("gyre")) s.ctr.gyre += place(1);
@@ -771,7 +772,7 @@
       if (on("gala")) {
         if (s.ts.gala === 0) { s.ts.gala = 1; s.colorless += 0; }   // Treasure: make it by hand
         else if (s.ts.gala === 1) { s.ts.gala = 2; s.ts.life += 2; }
-        else if (s.ts.gala === 2) { s.ts.gala = 3; s.ctr.gala += place(1); }
+        else if (s.ts.gala === 2) { s.ts.gala = 3; }   // her own counter: on the card, not tracked
       }
     });
   }
@@ -813,12 +814,11 @@
       case "weave":    return [String(P("weave")), "taps for" + (s.ts.weave ? " (+" + s.ts.weave + " this turn)" : "")];
       case "joraga":   return ["+" + s.ctr.joraga, "to other elves"];
       case "gyre":     return [String(s.ctr.gyre), "taps for"];
-      case "champion": return [String(P("champion")), "power"];
       case "kalonian": return [String(P("kalonian")), "power \u00b7 doubles on attack"];
       case "seymour":  return ["+" + place(P("seymour")), "to one, each combat"];
       case "ouro":     return ["+" + place(P("ouro")), "to each, each combat"];
-      case "gala":     return [["treasure", "2 life", "counter", "done"][s.ts.gala], "next trigger"];
-      case "essence":  return ["+1", "life per creature"];
+      case "gala":     return [["treasure", "+2 life", "counter", "done"][s.ts.gala], "next trigger"];
+      case "essence":  return ["+1 life", "per creature"];
     }
     return ["on", ""];
   }
@@ -828,7 +828,7 @@
       var t = el("div", "grp"); t.textContent = g.title; host.appendChild(t);
       var grid = el("div", "perms3");
       g.keys.forEach(function (k) {
-        var c = C[k], chip = el("div", "chip " + (s.on[k] ? "on" : "off"));
+        var c = C[k], chip = el("div", "chip " + (s.on[k] ? "on" : "off") + (c.life ? " life" : ""));
         chip.setAttribute("role", "button"); chip.setAttribute("data-fk", k === "ozolith" ? "bank" : "c_" + k);
         var bg = el("div", "bg"); if (ART[c.art]) bg.style.backgroundImage = "url(" + ART[c.art] + ")"; chip.appendChild(bg);
         chip.appendChild(el("div", "sh"));
@@ -839,6 +839,18 @@
           var m = document.createElement("button"); m.type = "button"; m.textContent = MINUS; m.setAttribute("aria-label", "Remove a counter from " + c.name);
           m.addEventListener("click", function (e) { e.stopPropagation(); bump(k, -1); });
           var cc = el("span", "cc"); cc.textContent = s.ctr[k];
+          cc.setAttribute("aria-label", "Counters on " + c.name + ". Long-press to type a number.");
+          (function (key, node) {
+            var timer = null, fired = false;
+            function start(e) { fired = false; timer = setTimeout(function () { fired = true; timer = null;
+                var v = prompt("Counters on " + C[key].name, String(s.ctr[key])); if (v === null) return;
+                v = n(v); act(function () { s.ctr[key] = v; }); }, 480); }
+            function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
+            node.addEventListener("pointerdown", start);
+            ["pointerup", "pointerleave", "pointercancel", "pointermove"].forEach(function (ev) { node.addEventListener(ev, function (e) { if (ev !== "pointermove" || Math.abs(e.movementX) + Math.abs(e.movementY) > 6) cancel(); }); });
+            node.addEventListener("click", function (e) { e.stopPropagation(); });      // never toggles the chip
+            node.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+          })(k, cc);
           var p = document.createElement("button"); p.type = "button"; p.textContent = "+"; p.setAttribute("aria-label", "Add a counter to " + c.name + " (modifiers apply)");
           p.addEventListener("click", function (e) { e.stopPropagation(); bump(k, place(1)); });
           pm.appendChild(m); pm.appendChild(cc); pm.appendChild(p); chip.appendChild(pm);
