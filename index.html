@@ -76,6 +76,12 @@
   h1 b { color: var(--amber); }
   .hbtns { display: flex; gap: 6px; }
   .hbtns button { padding: 8px 11px; font-size: var(--fs-md); min-height: 38px; }
+  /* frequent actions (Undo / New turn) sit alone at top-right, full size;
+     rare ones (Sound / New game) shrink and tuck under the turn number on the left */
+  .hleft { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .hbtns.minor button { padding: 3px 8px; min-height: 24px; font-size: var(--fs-sm); color: var(--dim); border-color: var(--edge-soft); }
+  .hbtns.major { margin-left: auto; }
+  .hbtns.major button { padding: 10px 16px; min-height: 44px; }
 
   button {
     font-family: var(--sans); font-size: var(--fs-md); color: var(--bone);
@@ -552,14 +558,25 @@
 
 <div class="wrap">
   <header class="a-hdr">
-    <h1 id="turnTop">Turn 1</h1>
-    <div class="hbtns">
-      <button id="sound">Sound</button>
+    <div class="hleft">
+      <h1 id="turnTop">Turn 1</h1>
+      <div class="hbtns minor">
+        <button id="sound" aria-label="Sound">Sound</button>
+        <button id="newgame" aria-label="New game">New game</button>
+      </div>
+    </div>
+    <div class="hbtns major">
       <button id="undo">Undo</button>
       <button class="primary" id="newturn">New turn</button>
-      <button id="newgame">New game</button>
     </div>
   </header>
+
+  <div class="panel turnline a-turn">
+    <span class="tl-lab">This turn (<span id="turnNo">1</span>):</span>
+    <span class="tl-it">Creatures <b class="up" id="fx-cIn">+0</b><b class="dn" id="fx-cOut">-0</b></span>
+    <span class="tl-it">Elves <b class="up" id="fx-eIn">+0</b><b class="dn" id="fx-eOut">-0</b></span>
+    <span class="tl-it">Life gain <b class="up" id="fx-life">+0</b></span>
+  </div>
 
   <div class="top a-mana">
     <div class="tile g">
@@ -599,12 +616,6 @@
     <div class="perms" id="perms"></div>
   </div>
 
-  <div class="panel turnline a-turn">
-    <span class="tl-lab">This turn (<span id="turnNo">1</span>):</span>
-    <span class="tl-it">Creatures <b class="up" id="fx-cIn">+0</b><b class="dn" id="fx-cOut">-0</b></span>
-    <span class="tl-it">Elves <b class="up" id="fx-eIn">+0</b><b class="dn" id="fx-eOut">-0</b></span>
-    <span class="tl-it">Life gain <b class="up" id="fx-life">+0</b></span>
-  </div>
 
   <div class="panel a-log">
     <h2><span>By turn</span></h2>

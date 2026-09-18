@@ -1,6 +1,6 @@
 /* Stale-while-revalidate: the app opens instantly and works with no signal,
    but a new deploy is picked up in the background and used next launch. */
-var CACHE = "elfball-v5";
+var CACHE = "elfball-v6";
 var ASSETS = ["./", "./index.html", "./manifest.webmanifest",
               "./icon-192.png", "./icon-512.png", "./icon-180.png"];
 
