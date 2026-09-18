@@ -573,6 +573,18 @@
   .chip .pm button { min-height: 24px; min-width: 28px; padding: 0 6px; font-size: var(--fs-md); background: rgba(12,20,16,.55); }
   .chip .pm .cc { font-family: var(--mono); font-size: var(--fs-sm); color: var(--moss-lit); min-width: 22px; text-align: center; }
   .chip.off .pm { visibility: hidden; }
+  .nbox { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.72); }
+  .nbox.open { display: flex; }
+  .nbox .in { background: var(--panel); border: 1px solid var(--moss); border-radius: 12px; padding: 14px; width: min(320px, 88vw); }
+  .nbox .ti { font-size: var(--fs-md); color: var(--bone); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .nbox .su { font-size: var(--fs-sm); color: var(--dim); margin-bottom: 10px; line-height: 1.35; }
+  .nbox .rw { display: flex; gap: 6px; align-items: center; }
+  .nbox input { flex: 1; min-width: 0; height: 52px; text-align: center; font-family: var(--mono); font-size: var(--fs-lg); color: var(--amber);
+                background: var(--well); border: 1px solid var(--edge); border-radius: 8px; -moz-appearance: textfield; }
+  .nbox input::-webkit-outer-spin-button, .nbox input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .nbox .rw button { min-width: 52px; height: 52px; font-size: var(--fs-lg); }
+  .nbox .bt { display: flex; gap: 6px; margin-top: 10px; }
+  .nbox .bt button { flex: 1; min-height: 46px; }
   /* floating deltas */
   .flt { position: absolute; left: 50%; top: 0; transform: translate(-50%, 0); pointer-events: none; z-index: 30;
          font-family: var(--mono); font-weight: 700; font-size: var(--fs-lg); color: #BCE7A0;
@@ -662,6 +674,12 @@
     <div class="logbox" id="logbox"></div>
   </div>
 </div>
+
+<div class="nbox" id="nbox"><div class="in">
+  <div class="ti" id="nbTitle"></div><div class="su" id="nbSub"></div>
+  <div class="rw"><button type="button" id="nbDn">&minus;</button><input id="nbVal" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1"><button type="button" id="nbUp">+</button></div>
+  <div class="bt"><button type="button" id="nbCancel">Cancel</button><button type="button" class="primary" id="nbOk">Set</button></div>
+</div></div>
 
 <script>
 (function () {
@@ -762,6 +780,28 @@
   }
   function undo() { if (!hist.length) return; s = JSON.parse(hist.pop()); save(); render(); }
 
+  /* ---------- in-page number box (prompt() is blocked in iOS home-screen apps) ---------- */
+  var nbDone = null;
+  function askNum(title, sub, start, fn) {
+    document.getElementById("nbTitle").textContent = title;
+    document.getElementById("nbSub").textContent = sub || "";
+    var inp = document.getElementById("nbVal"); inp.value = String(start);
+    nbDone = fn; document.getElementById("nbox").classList.add("open");
+    setTimeout(function () { try { inp.focus(); inp.select(); } catch (e) {} }, 30);
+  }
+  function nbClose(commit) {
+    var v = n(document.getElementById("nbVal").value), fn = nbDone;
+    nbDone = null; document.getElementById("nbox").classList.remove("open");
+    document.getElementById("nbVal").blur();
+    if (commit && fn) fn(v);
+  }
+  document.getElementById("nbOk").addEventListener("click", function () { nbClose(true); });
+  document.getElementById("nbCancel").addEventListener("click", function () { nbClose(false); });
+  document.getElementById("nbUp").addEventListener("click", function () { var i = document.getElementById("nbVal"); i.value = n(i.value) + 1; });
+  document.getElementById("nbDn").addEventListener("click", function () { var i = document.getElementById("nbVal"); i.value = Math.max(0, n(i.value) - 1); });
+  document.getElementById("nbVal").addEventListener("keydown", function (e) { if (e.key === "Enter") nbClose(true); if (e.key === "Escape") nbClose(false); });
+  document.getElementById("nbox").addEventListener("click", function (e) { if (e.target === this) nbClose(false); });
+
   /* ---------- events ---------- */
   function creatureEnters(isElf) {
     act(function () {
@@ -843,8 +883,8 @@
           (function (key, node) {
             var timer = null, fired = false;
             function start(e) { fired = false; timer = setTimeout(function () { fired = true; timer = null;
-                var v = prompt("Counters on " + C[key].name, String(s.ctr[key])); if (v === null) return;
-                v = n(v); act(function () { s.ctr[key] = v; }); }, 480); }
+                askNum("Counters on " + C[key].name, "Sets the exact number. No modifiers are applied.", s.ctr[key],
+                       function (v) { act(function () { s.ctr[key] = v; }); }); }, 480); }
             function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
             node.addEventListener("pointerdown", start);
             ["pointerup", "pointerleave", "pointercancel", "pointermove"].forEach(function (ev) { node.addEventListener(ev, function (e) { if (ev !== "pointermove" || Math.abs(e.movementX) + Math.abs(e.movementY) > 6) cancel(); }); });
@@ -907,10 +947,9 @@
   document.getElementById("prolifX").addEventListener("click", function () { if (on("tromell") && s.ts.ntIn > 0) proliferate(s.ts.ntIn); });
   document.getElementById("dbl").addEventListener("click", function () { act(function () { forTracked(function (k) { if (s.ctr[k] > 0) s.ctr[k] += place(s.ctr[k]); }); }); });
   document.getElementById("plusN").addEventListener("click", function () {
-    var hint = on("ouro") ? String(P("ouro")) : "1";
-    var v = prompt("N counters on every tracked card (before modifiers: N " + ARROW + " " + (adders() ? "(N+" + adders() + ")" : "N") + (mult() > 1 ? TIMES + "2" : "") + ")" + (on("ouro") ? "\nOuroboroid's power is " + P("ouro") : ""), hint);
-    if (v === null) return; v = n(v); if (!v) return;
-    act(function () { forTracked(function (k) { s.ctr[k] += place(v); }); });
+    askNum("+N to every tracked card", "N before modifiers: N " + ARROW + " " + (adders() ? "(N+" + adders() + ")" : "N") + (mult() > 1 ? " " + TIMES + " 2" : "") + (on("ouro") ? ". Ouroboroid's power is " + P("ouro") + "." : ""),
+           on("ouro") ? P("ouro") : 1,
+           function (v) { if (v > 0) act(function () { forTracked(function (k) { s.ctr[k] += place(v); }); }); });
   });
   document.getElementById("undo").addEventListener("click", undo);
   document.getElementById("newturn").addEventListener("click", function () {
