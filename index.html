@@ -1514,6 +1514,11 @@
     }, { silent: true });
   });
   document.getElementById("newgame").addEventListener("click", function () {
+    // Mode chooser lives on New game (Anthony: no extra button). A second
+    // deck is a separate page, not a mode of this engine.
+    if (location.protocol !== "file:" && confirm("Switch to the TROMELL counter tracker?\n\nOK = open Tromell tracker\nCancel = new Eladamri game here")) {
+      location.href = "tromell.html"; return;
+    }
     sfxAt("newGame", 0);
     act(function () { s = clone(DEFAULT); }, { silent: true });
   });

@@ -5,6 +5,7 @@ SRC="/Users/anthony/Library/CloudStorage/OneDrive-Personal/Dropbox/Magic the gat
 cd "$(dirname "$0")"
 [ -f "$SRC" ] || { echo "source not found: $SRC" >&2; exit 1; }
 cp "$SRC" index.html
+cp "$(dirname "$SRC")/Tromell Tracker.html" tromell.html
 python3 - <<'PY'
 import io, re
 h = io.open("index.html", encoding="utf-8").read()
@@ -26,6 +27,19 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 
 </body>''', 1)
 io.open("index.html", "w", encoding="utf-8").write(h)
+# Tromell page: same manifest/icon/service-worker treatment
+t = io.open("tromell.html", encoding="utf-8").read()
+if "serviceWorker" not in t:
+    t = t.replace("</body>", '''<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js")["catch"](function () {});
+  });
+}
+</script>
+
+</body>''', 1)
+io.open("tromell.html", "w", encoding="utf-8").write(t)
 # bump the cache name or devices keep serving the old copy
 sw = io.open("sw.js", encoding="utf-8").read()
 n = int(re.search(r'elfball-v(\d+)', sw).group(1)) + 1
