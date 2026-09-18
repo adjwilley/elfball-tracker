@@ -531,7 +531,8 @@
   .tzone.tdn { bottom: 0; }
 
   /* ===== Tromell mode ===== */
-  .hl { display: flex; align-items: baseline; justify-content: center; gap: 6px 28px; flex-wrap: wrap;
+  /* two equal columns, each half centred in its own column; one column on a narrow phone */
+  .hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); align-items: center; gap: 4px 12px; text-align: center;
         background: var(--panel); border: 1px solid var(--edge); border-radius: 11px; padding: 6px 10px; }
   .hl .f { font-family: var(--mono); font-size: var(--fs-md); color: var(--bone); white-space: nowrap; }
   .hl .f b { color: var(--amber); font-weight: 600; }
@@ -853,8 +854,8 @@
       case "marwyn":   return [String(P("marwyn")), "taps for"];
       case "weave":    return [String(P("weave")), "taps for" + (s.ts.weave ? " (+" + s.ts.weave + " this turn)" : "")];
       case "joraga":   return ["+" + s.ctr.joraga, "+1/+1 to other elves per counter"];
-      case "seymour":  return ["+" + place(P("seymour")), "to 1 creature at combat (his power " + P("seymour") + ")"];
-      case "ouro":     return ["+" + place(P("ouro")), "to EACH at combat (his power " + P("ouro") + ")"];
+      case "seymour":  return ["+" + place(P("seymour")), "to one creature at combat"];
+      case "ouro":     return ["+" + place(P("ouro")), "to each creature at combat"];
       case "gala":     return [["treasure", "+2 life", "counter", "done"][s.ts.gala], "next trigger"];
       case "essence":  return ["+1 life", "per creature"];
     }
