@@ -124,6 +124,10 @@
     font-family: var(--mono); font-size: var(--fs-md); color: var(--dim); border-radius: 7px;
   }
   .mrow .mb:hover { color: var(--bone); border-color: var(--moss); }
+  /* mana buttons carry their colour so the two tiles read apart at a glance */
+  .tile.g .mrow .mb { border: 1px solid var(--moss); color: var(--moss-lit); }
+  .tile.c .mrow .mb { border: 1px solid rgba(232,236,228,.75); color: var(--bone); }
+
 
   /* ---------- panels ---------- */
   .panel {

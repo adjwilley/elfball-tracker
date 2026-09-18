@@ -120,6 +120,10 @@
     font-family: var(--mono); font-size: var(--fs-md); color: var(--dim); border-radius: 7px;
   }
   .mrow .mb:hover { color: var(--bone); border-color: var(--moss); }
+  /* mana buttons carry their colour so the two tiles read apart at a glance */
+  .tile.g .mrow .mb { border: 1px solid var(--moss); color: var(--moss-lit); }
+  .tile.c .mrow .mb { border: 1px solid rgba(232,236,228,.75); color: var(--bone); }
+
 
   /* ---------- panels ---------- */
   .panel {
@@ -532,7 +536,7 @@
   .hl .f { font-family: var(--mono); font-size: var(--fs-md); color: var(--bone); white-space: nowrap; }
   .hl .f b { color: var(--amber); font-weight: 600; }
   .hl .e { font-size: var(--fs-md); color: var(--dim); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; position: relative; }
-  .hl .e b { font-family: var(--mono); color: var(--moss-lit); font-size: var(--fs-lg); }
+  .hl .e b { font-family: var(--mono); color: var(--amber); font-size: var(--fs-md); font-weight: 800; }
   .hl .e { white-space: normal; }
   .hl .e small { display: block; color: var(--dim); text-transform: none; letter-spacing: 0; white-space: normal; font-size: var(--fs-sm); }
   .crow2 { display: flex; align-items: center; gap: 6px; max-width: 600px; margin: 0 auto; width: 100%; padding: 3px 0; }
@@ -540,7 +544,7 @@
   .crow2 .lab { flex: 1; font-size: var(--fs-md); text-transform: uppercase; letter-spacing: .04em; color: var(--bone); }
   .crow2 .num { font-family: var(--mono); font-size: var(--fs-lg); color: var(--moss-lit); min-width: 40px; text-align: center; position: relative; }
   .crow2 button { min-height: 40px; min-width: 52px; font-size: var(--fs-md); }
-  .crow2 button.add { border-color: var(--moss); color: var(--moss-lit); font-weight: 600; min-width: 84px; }
+  .crow2 button.add { border-color: var(--moss); color: var(--moss-lit); font-weight: 600; width: 128px; min-width: 128px; text-align: center; padding-left: 0; padding-right: 0; }
   .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .acts button { min-height: 46px; position: relative; line-height: 1.15; }
   .acts button small { display: block; font-size: var(--fs-sm); color: var(--dim); font-weight: 400; }
@@ -882,7 +886,7 @@
     var a = adders(), m = mult();
     document.getElementById("formula").innerHTML = "N counters " + ARROW + " <b>" + (a ? "(N + " + a + ")" : "N") + (m > 1 ? " " + TIMES + " " + m : "") + "</b>";
     var base = enterBase(null), en = place(base), ed = endure(null);
-    document.getElementById("enterN").firstChild ? document.getElementById("enterN").firstChild.nodeValue = en + ed : document.getElementById("enterN").appendChild(document.createTextNode(en + ed));
+    document.getElementById("enterN").firstChild ? document.getElementById("enterN").firstChild.nodeValue = "+" + (en + ed) : document.getElementById("enterN").appendChild(document.createTextNode("+" + (en + ed)));
     var why = []; if (on("tromell")) why.push("Tromell 1"); if (on("arwen")) why.push("Arwen " + T("arwen")); if (on("renata")) why.push("Renata 1");
     document.getElementById("enterWhy").textContent = base || ed ? "(" + (why.join(" + ") || "0") + (a || m > 1 ? " " + ARROW + " " + en : "") + (ed ? ", + endure " + ed : "") + ")" : "";
     document.getElementById("p1txt").textContent = "+" + place(1) + " on each card that has counters";
